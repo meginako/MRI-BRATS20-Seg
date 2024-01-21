@@ -1,0 +1,3 @@
+v6
+changed only the unet form maxpooling3D to averagepooling3D
+
