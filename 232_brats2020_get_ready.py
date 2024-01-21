@@ -30,6 +30,7 @@ from tifffile import imsave
 from sklearn.preprocessing import MinMaxScaler
 
 scaler = MinMaxScaler()
+
 ##########################
 # This part of the code to get an initial understanding of the dataset.
 #################################
