@@ -1,3 +1,6 @@
+
+
+
 # https://youtu.be/ScdCQqLtnis
 """
 @author: Sreenivas Bhattiprolu
@@ -20,7 +23,7 @@ You can change input image sizes to customize for your computing resources.
 import os
 import numpy as np
 from custom_datagen import imageLoader
-#import tensorflow as tf
+import tensorflow as tf
 import keras
 from matplotlib import pyplot as plt
 import glob
@@ -74,6 +77,27 @@ for img in range(len(train_mask_list)):
     zipped = zip(columns, counts)
     conts_dict = dict(zipped)
 
+    # # df = df.append(conts_dict, ignore_index=True)
+    # temp_image_tensor = tf.convert_to_tensor(np.load(train_mask_list[img]))
+    #
+    # # Use torch.argmax along the appropriate axis (axis=3)
+    # temp_image_argmax = tf.argmax(temp_image_tensor, dim=3)
+    #
+    # # Convert to NumPy array if needed
+    # temp_image_argmax_np = temp_image_argmax.numpy()
+    #
+    # # Calculate unique values and their counts
+    # val, counts = tf.unique(temp_image_argmax, return_counts=True)
+
+    # Convert to NumPy arrays for further processing if needed
+    # val_np, counts_np = val.numpy(), counts.numpy()
+
+    # Create a dictionary from the counts
+    # conts_dict = dict(zip(columns, counts))
+
+    # Convert conts_dict values to torch tensors
+    # conts_dict = {key: tf.tensor(value) for key, value in conts_dict.items()}
+
     df = df.append(conts_dict, ignore_index=True)
 
 label_0 = df['0'].sum()
@@ -109,7 +133,7 @@ val_mask_list = os.listdir(val_mask_dir)
 ##################################
 
 ########################################################################
-batch_size = 2
+batch_size = 8
 
 train_img_datagen = imageLoader(train_img_dir, train_img_list,
                                 train_mask_dir, train_mask_list, batch_size)
@@ -153,10 +177,12 @@ dice_loss = sm.losses.DiceLoss(class_weights=np.array([wt0, wt1, wt2, wt3]))
 focal_loss = sm.losses.CategoricalFocalLoss()
 total_loss = dice_loss + (1 * focal_loss)
 
-metrics = ['accuracy', sm.metrics.IOUScore(threshold=0.5)]
+metrics = ['accuracy', sm.metrics.IOUScore(threshold=0.95)]
 
 LR = 0.0001
+# optim = ts.keras.optimizers.Adam(LR)
 optim = ts.keras.optimizers.Adam(LR)
+
 #######################################################################
 # Fit the model
 
@@ -164,6 +190,10 @@ steps_per_epoch = len(train_img_list) // batch_size
 val_steps_per_epoch = len(val_img_list) // batch_size
 
 from simple_3d_unet import simple_unet_model
+from keras.callbacks import EarlyStopping
+
+early_stopping = EarlyStopping(monitor='val_loss', patience=5, verbose=1)
+callbacks_list = [early_stopping]
 
 model = simple_unet_model(IMG_HEIGHT=128,
                           IMG_WIDTH=128,
@@ -177,27 +207,42 @@ print(model.summary())
 print(model.input_shape)
 print(model.output_shape)
 
+import time
+
+# Record start time
+start_time = time.time()
+
+# Your model training code here
 history = model.fit(train_img_datagen,
                     steps_per_epoch=steps_per_epoch,
                     epochs=100,
                     verbose=1,
                     validation_data=val_img_datagen,
                     validation_steps=val_steps_per_epoch,
-                    )
+                    callbacks=callbacks_list)
+
+# Record end time
+end_time = time.time()
+
+# Calculate total training time
+total_time = end_time - start_time
+
+# Print the total training time
+print(f"Total training time: {total_time} seconds")
 
 import pandas as pd
 # Convert the history to a DataFrame
 history_df = pd.DataFrame(history.history)
 
 # Define the CSV file path
-csv_file_path = 'training_history.csv'
+csv_file_path = 'saved_models/v11/training_history.csv'
 
 # Save the DataFrame to a CSV file
 history_df.to_csv(csv_file_path, index=False)
 
 print(f"Training history saved to {csv_file_path}")
 
-model.save('saved_models/brats_3d_v5.hdf5')
+model.save('saved_models/v11/brats_3d_v5.hdf5')
 ##################################################################
 
 
@@ -254,55 +299,50 @@ history2 = my_model.fit(train_img_datagen,
                         )
 #################################################
 
-# For predictions you do not need to compile the model, so ...
-my_model = load_model('saved_models/brats_3d_v4.hdf5',
-                      compile=False)
 
-# Verify IoU on a batch of images from the test dataset
-# Using built in keras function for IoU
-# Only works on TF > 2.0
+import cv2
+
+import numpy as np
+from keras.models import load_model
 from keras.metrics import MeanIoU
+# Load the model
+my_model = load_model('saved_models/v1/brats_3d_v5.hdf5', compile=False)
 
-batch_size = 8  # Check IoU for a batch of images
-test_img_datagen = imageLoader(val_img_dir, val_img_list,
-                               val_mask_dir, val_mask_list, batch_size)
+# Function to apply Laplacian filter to an image
+def apply_laplacian(image):
+    # Convert the image to grayscale if it's not already
+    if len(image.shape) == 3:
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-# Verify generator.... In python 3 next() is renamed as __next__()
-test_image_batch, test_mask_batch = test_img_datagen.__next__()
+    # Apply Laplacian filter
+    laplacian = cv2.Laplacian(image, cv2.CV_64F)
+    laplacian = np.uint8(np.absolute(laplacian))
 
-test_mask_batch_argmax = np.argmax(test_mask_batch, axis=4)
-test_pred_batch = my_model.predict(test_image_batch)
-test_pred_batch_argmax = np.argmax(test_pred_batch, axis=4)
+    return laplacian
 
-n_classes = 4
-IOU_keras = MeanIoU(num_classes=n_classes)
-IOU_keras.update_state(test_pred_batch_argmax, test_mask_batch_argmax)
-print("Mean IoU =", IOU_keras.result().numpy())
+# Load test image and mask
+img_num = 15
+test_img = np.load("G:/Alban & Megi/BrainSegmentation/dataset/BraTS2020_TrainingData/input_data_128/val/images/image_" + str(img_num) + ".npy")
+test_mask = np.load("G:/Alban & Megi/BrainSegmentation/dataset/BraTS2020_TrainingData/input_data_128/val/masks/mask_" + str(img_num) + ".npy")
 
-#############################################
-# Predict on a few test images, one at a time
-# Try images:
-img_num = 82
+# Apply Laplacian filter to the test image
+test_img_filtered = apply_laplacian(test_img)
 
-test_img = np.load("G:/Alban & Megi/BrainSegmentation/dataset//BraTS2020_TrainingData/input_data_128/val/images/image_" + str(img_num) + ".npy")
+# Expand dimensions for model input
+test_img_input = np.expand_dims(test_img_filtered, axis=0)
 
-test_mask = np.load("G:/Alban & Megi/BrainSegmentation/dataset//BraTS2020_TrainingData/input_data_128/val/masks/mask_" + str(img_num) + ".npy")
-test_mask_argmax = np.argmax(test_mask, axis=3)
-
-test_img_input = np.expand_dims(test_img, axis=0)
+# Make predictions
 test_prediction = my_model.predict(test_img_input)
 test_prediction_argmax = np.argmax(test_prediction, axis=4)[0, :, :, :]
 
-print(test_prediction_argmax.shape)
-print(test_mask_argmax.shape)
-print(np.unique(test_prediction_argmax))
-
+# Calculate IoU
+n_classes = 4
+IOU_keras = MeanIoU(num_classes=n_classes)
+IOU_keras.update_state(test_prediction_argmax, np.argmax(test_mask, axis=3))
+print("Mean IoU =", IOU_keras.result().numpy())
 
 # Plot individual slices from test predictions for verification
 from matplotlib import pyplot as plt
-import random
-
-# n_slice=random.randint(0, test_prediction_argmax.shape[2])
 n_slice = 55
 plt.figure(figsize=(12, 8))
 plt.subplot(231)
@@ -310,10 +350,8 @@ plt.title('Testing Image')
 plt.imshow(test_img[:, :, n_slice, 1], cmap='gray')
 plt.subplot(232)
 plt.title('Testing Label')
-plt.imshow(test_mask_argmax[:, :, n_slice])
+plt.imshow(np.argmax(test_mask, axis=3)[:, :, n_slice])
 plt.subplot(233)
 plt.title('Prediction on test image')
 plt.imshow(test_prediction_argmax[:, :, n_slice])
 plt.show()
-
-############################################################
