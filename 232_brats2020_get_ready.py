@@ -26,10 +26,12 @@ import glob
 from tensorflow.keras.utils import to_categorical
 import matplotlib.pyplot as plt
 from tifffile import imsave
-
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 
-scaler = MinMaxScaler()
+#changed by megi
+#scaler = MinMaxScaler()
+scaler = StandardScaler()
 ##########################
 # This part of the code to get an initial understanding of the dataset.
 #################################
