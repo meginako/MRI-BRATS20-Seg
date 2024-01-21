@@ -160,6 +160,7 @@ mask_list = sorted(glob.glob('G:/Alban & Megi/BrainSegmentation/dataset/BraTS202
 # Each volume generates 18 64x64x64x4 sub-volumes.
 # Total 369 volumes = 6642 sub volumes
 
+
 for img in range(len(t2_list)):  # Using t1_list as all lists are of same size
     print("Now preparing image and masks number: ", img)
 
