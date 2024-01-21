@@ -3,7 +3,35 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
+        <entry key="\dataset\BraTS2020_TrainingData\MICCAI_BraTS2020_TrainingData\name_mapping.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\dataset\BraTS2020_TrainingData\MICCAI_BraTS2020_TrainingData\survival_info.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\dataset\BraTS2020_ValidationData\MICCAI_BraTS2020_ValidationData\name_mapping_validation_data.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\saved_models\v10\training_history.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\saved_models\v11\training_history.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -25,6 +53,20 @@
           </value>
         </entry>
         <entry key="\saved_models\v7\training_history.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\saved_models\v8\training_history.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\saved_models\v9\training_history.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
