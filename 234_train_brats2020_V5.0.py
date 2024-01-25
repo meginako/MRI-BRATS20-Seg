@@ -153,9 +153,9 @@ dice_loss = sm.losses.DiceLoss(class_weights=np.array([wt0, wt1, wt2, wt3]))
 focal_loss = sm.losses.CategoricalFocalLoss()
 total_loss = dice_loss + (1 * focal_loss)
 
-metrics = ['accuracy', sm.metrics.IOUScore(threshold=0.5)]
+metrics = ['accuracy', sm.metrics.IOUScore(threshold=0.55)]
 
-LR = 0.0001
+LR = 0.0001 # lets try a smaller learning rate from 0.0001 to 0.001 (val ious were always the same idk why)
 optim = ts.keras.optimizers.Adam(LR)
 #######################################################################
 # Fit the model
@@ -190,14 +190,14 @@ import pandas as pd
 history_df = pd.DataFrame(history.history)
 
 # Define the CSV file path
-csv_file_path = 'training_history.csv'
+csv_file_path = 'v22Jan24/brats_3d_v5_mean55LR000.csv'
 
 # Save the DataFrame to a CSV file
 history_df.to_csv(csv_file_path, index=False)
 
 print(f"Training history saved to {csv_file_path}")
 
-model.save('saved_models/brats_3d_v5.hdf5')
+model.save('saved_models/v22Jan24/brats_3d_v5_mean55LR000.hdf5')
 ##################################################################
 
 
@@ -232,38 +232,38 @@ from keras.models import load_model
 # The following gives an error: Unknown loss function: dice_loss_plus_1focal_loss
 # This is because the model does not save loss function and metrics. So to compile and
 # continue training we need to provide these as custom_objects.
-my_model = load_model('G:/Alban & Megi/BrainSegmentation/brats_3d.hdf5')
+#my_model = load_model('G:/Alban & Megi/BrainSegmentation/saved_models/v22Jan24/brats_3d_v1.hdf5')
 
 # So let us add the loss as custom object... but the following throws another error...
 # Unknown metric function: iou_score
-my_model = load_model('G:/Alban & Megi/BrainSegmentation/brats_3d.hdf5',
-                      custom_objects={'dice_loss_plus_1focal_loss': total_loss})
+#megi commented bcs it throws error and now it is not essential
+#my_model = load_model('G:/Alban & Megi/BrainSegmentation/saved_models/v22Jan24/brats_3d_v1.hdf5',custom_objects={'dice_loss_plus_1focal_loss': total_loss})
 
 # Now, let us add the iou_score function we used during our initial training
-my_model = load_model('brats_3d.hdf5',
-                      custom_objects={'dice_loss_plus_1focal_loss': total_loss,
-                                      'iou_score': sm.metrics.IOUScore(threshold=0.5)})
+
+
+#JUST LOAD THIS IF YOU WANT TO TRAIN MORE
+#my_model = load_model('G:/Alban & Megi/BrainSegmentation/saved_models/v22Jan24/brats_3d_v4_85Train.hdf5',custom_objects={'dice_loss_plus_1focal_loss': total_loss,'iou_score': sm.metrics.IOUScore(threshold=0.5)})
 
 # Now all set to continue the training process.
-history2 = my_model.fit(train_img_datagen,
-                        steps_per_epoch=steps_per_epoch,
-                        epochs=1,
-                        verbose=1,
-                        validation_data=val_img_datagen,
-                        validation_steps=val_steps_per_epoch,
-                        )
+#history2 = my_model.fit(train_img_datagen,
+ #                       steps_per_epoch=steps_per_epoch,
+  #                      epochs=1,
+   #                     verbose=1,
+    #                    validation_data=val_img_datagen,
+     #                   validation_steps=val_steps_per_epoch,
+      #                  )
 #################################################
 
 # For predictions you do not need to compile the model, so ...
-my_model = load_model('saved_models/brats_3d_v4.hdf5',
-                      compile=False)
+my_model = load_model('saved_models/v22Jan24/brats_3d_v5_mean55LR000.hdf5',compile=False)
 
 # Verify IoU on a batch of images from the test dataset
 # Using built in keras function for IoU
 # Only works on TF > 2.0
 from keras.metrics import MeanIoU
 
-batch_size = 8  # Check IoU for a batch of images
+batch_size = 4  # Check IoU for a batch of images
 test_img_datagen = imageLoader(val_img_dir, val_img_list,
                                val_mask_dir, val_mask_list, batch_size)
 
@@ -303,17 +303,28 @@ from matplotlib import pyplot as plt
 import random
 
 # n_slice=random.randint(0, test_prediction_argmax.shape[2])
-n_slice = 55
-plt.figure(figsize=(12, 8))
-plt.subplot(231)
-plt.title('Testing Image')
-plt.imshow(test_img[:, :, n_slice, 1], cmap='gray')
-plt.subplot(232)
-plt.title('Testing Label')
-plt.imshow(test_mask_argmax[:, :, n_slice])
-plt.subplot(233)
-plt.title('Prediction on test image')
-plt.imshow(test_prediction_argmax[:, :, n_slice])
-plt.show()
+#Generates all the slices and saves them in a folder
+#TODO UNCOMMENT IF YOU WANT TO TEST
+
+import matplotlib.image
+for i in range(128):
+    n_slice = i
+    '''
+    plt.figure(figsize=(12, 8))
+    plt.subplot(231)
+    plt.title('Testing Image')
+    plt.imshow(test_img[:, :, n_slice, 1], cmap='gray')
+    plt.subplot(232)
+    plt.title('Testing Label')
+    plt.imshow(test_mask_argmax[:, :, n_slice])
+    plt.subplot(233)
+    plt.title('Prediction on test image')
+    plt.imshow(test_prediction_argmax[:, :, n_slice])
+    plt.show()
+    '''
+    matplotlib.image.imsave('G:/Alban & Megi/BrainSegmentation/dataset/BraTS2020_TrainingData/results1/'+str(img_num)+'/original/OriginalImageSlice_' + str(n_slice) + '.png', test_img[:, :, n_slice, 1])
+    matplotlib.image.imsave('G:/Alban & Megi/BrainSegmentation/dataset/BraTS2020_TrainingData/results1/'+str(img_num)+'/mask/MaskSlice_' + str(n_slice) + '.png', test_mask_argmax[:, :, n_slice])
+    matplotlib.image.imsave('G:/Alban & Megi/BrainSegmentation/dataset/BraTS2020_TrainingData/results1/'+str(img_num)+'/pred/PredictedSlice_' + str(n_slice) + '.png', test_prediction_argmax[:, :, n_slice])
+
 
 ############################################################
