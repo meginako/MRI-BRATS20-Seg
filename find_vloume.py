@@ -7,7 +7,7 @@ tumor_array = tumor_array[:, :, :, 1]
 # Given pixel sizes in millimeters
 pixel_size_x = 1.5  # replace with the actual pixel size in the x-dimension
 pixel_size_y = 1.5  # replace with the actual pixel size in the y-dimension
-pixel_size_z = 4   # replace with the actual pixel size in the z-dimension
+pixel_size_z = 1.5  # it can be 1.5 or 4 // replace with the actual pixel size in the z-dimension
 
 # Get the dimensions of the tumor array
 num_voxels_x, num_voxels_y, num_voxels_z = 128, 128, 128

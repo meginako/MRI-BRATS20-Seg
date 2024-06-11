@@ -282,20 +282,26 @@ print("Mean IoU =", IOU_keras.result().numpy())
 #############################################
 # Predict on a few test images, one at a time
 # Try images:
-img_num = 82
+def testAndSave(img_num):
+#img_num = 82
 
-test_img = np.load("G:/Alban & Megi/BrainSegmentation/dataset//BraTS2020_TrainingData/input_data_128/val/images/image_" + str(img_num) + ".npy")
+    test_img = np.load("G:/Alban & Megi/BrainSegmentation/dataset//BraTS2020_TrainingData/input_data_128/val/images/image_" + str(img_num) + ".npy")
 
-test_mask = np.load("G:/Alban & Megi/BrainSegmentation/dataset//BraTS2020_TrainingData/input_data_128/val/masks/mask_" + str(img_num) + ".npy")
-test_mask_argmax = np.argmax(test_mask, axis=3)
+    test_mask = np.load("G:/Alban & Megi/BrainSegmentation/dataset//BraTS2020_TrainingData/input_data_128/val/masks/mask_" + str(img_num) + ".npy")
+    test_mask_argmax = np.argmax(test_mask, axis=3)
 
-test_img_input = np.expand_dims(test_img, axis=0)
-test_prediction = my_model.predict(test_img_input)
-test_prediction_argmax = np.argmax(test_prediction, axis=4)[0, :, :, :]
-
-print(test_prediction_argmax.shape)
-print(test_mask_argmax.shape)
-print(np.unique(test_prediction_argmax))
+    test_img_input = np.expand_dims(test_img, axis=0)
+    test_prediction = my_model.predict(test_img_input)
+    test_prediction_argmax = np.argmax(test_prediction, axis=4)[0, :, :, :]
+    check_array = test_prediction_argmax
+    np.save("G:/Alban & Megi/BrainSegmentation/dataset/predictedNPYResults/predicted_"+str(img_num)+".npy",test_prediction_argmax)
+    #print(test_prediction_argmax.shape)
+    #print(test_mask_argmax.shape)
+    #print(np.unique(test_prediction_argmax))
+    #plt.imshow(test_prediction_argmax[1,:,:])  # cmap='gray' for grayscale, use other colormaps for different looks
+    #plt.colorbar()  # Add colorbar to show intensity scale
+    #plt.title("Picture of slice " + str(img_num))
+    #plt.show()
 
 
 # Plot individual slices from test predictions for verification

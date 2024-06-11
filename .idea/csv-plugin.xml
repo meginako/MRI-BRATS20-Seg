@@ -31,7 +31,42 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\saved_models\version_parameters.csv">
+        <entry key="\training_history.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\v22Jan24\brats_3d_v4_85Train.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\v22Jan24\brats_3d_v5_mean55LR000.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\v22Jan24\training_history.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\v22Jan24\training_history_FullDataset.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\v22Jan24\training_history_Zscore.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
